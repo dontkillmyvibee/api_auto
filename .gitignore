@@ -1,0 +1,29 @@
+# Окружение и зависимости
+.venv/
+venv/
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+.mypy_cache/
+.ruff_cache/
+.pytest_cache/
+
+# Тесты и отчёты
+allure-results/
+allure-report/
+.coverage
+htmlcov/
+
+# Конфигурация и секреты
+.env
+.env.*
+!.env.example
+
+# IDE
+.idea/
+.vscode/
+
+# OS
+.DS_Store
