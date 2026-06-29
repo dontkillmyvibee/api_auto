@@ -4,5 +4,5 @@ from clients.http.gateway.accounts.client import AccountsGatewayHTTPClient, buil
 
 
 @pytest.fixture
-def get_http_gateway_account_client() -> AccountsGatewayHTTPClient:
+def http_gateway_account_client() -> AccountsGatewayHTTPClient:
     return build_accounts_gateway_http_client()

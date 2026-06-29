@@ -15,6 +15,7 @@ from clients.http.gateway.accounts.schema import (
     OpenSavingsAccountResponseSchema,
 )
 from clients.http.gateway.public_builder import get_public_http_client
+from tools.assertions.http import assert_response_schema
 from tools.http.http_routes import HTTPRoutes
 
 
@@ -26,7 +27,7 @@ class AccountsGatewayHTTPClient:
     def __init__(self, client: HTTPClient):
         self.__client = client
 
-    @allure.step("Get accounts by {query.user_id}")
+    @allure.step("Get accounts")
     def get_accounts_api(self, query: GetAccountsQuerySchema) -> Response:
         """Выполняет GET-запрос на получение списка счетов пользователя.
 
@@ -37,6 +38,7 @@ class AccountsGatewayHTTPClient:
             Response: Ответ от сервера в виде объекта Response.
 
         """
+        allure.dynamic.title(f"Get accounts by {query.user_id}")  # type: ignore[no-untyped-call]
         return self.__client.get(HTTPRoutes.ACCOUNTS, params=query.to_dict())
 
     @allure.step("Open deposit account")
@@ -93,25 +95,25 @@ class AccountsGatewayHTTPClient:
 
     def get_accounts(self, query: GetAccountsQuerySchema) -> GetAccountsResponseSchema:
         response = self.get_accounts_api(query)
-        return GetAccountsResponseSchema.model_validate_json(response.text)
+        return assert_response_schema(response, GetAccountsResponseSchema)
 
     def open_deposit_account(self, request: OpenDepositAccountRequestSchema) -> OpenDepositAccountResponseSchema:
         response = self.open_deposit_account_api(request)
-        return OpenDepositAccountResponseSchema.model_validate_json(response.text)
+        return assert_response_schema(response, OpenDepositAccountResponseSchema)
 
     def open_savings_account(self, request: OpenSavingsAccountRequestSchema) -> OpenSavingsAccountResponseSchema:
         response = self.open_savings_account_api(request)
-        return OpenSavingsAccountResponseSchema.model_validate_json(response.text)
+        return assert_response_schema(response, OpenSavingsAccountResponseSchema)
 
     def open_debit_card_account(self, request: OpenDebitCardAccountRequestSchema) -> OpenDebitCardAccountResponseSchema:
         response = self.open_debit_card_account_api(request)
-        return OpenDebitCardAccountResponseSchema.model_validate_json(response.text)
+        return assert_response_schema(response, OpenDebitCardAccountResponseSchema)
 
     def open_credit_card_account(
         self, request: OpenCreditCardAccountRequestSchema
     ) -> OpenCreditCardAccountResponseSchema:
         response = self.open_credit_card_account_api(request)
-        return OpenCreditCardAccountResponseSchema.model_validate_json(response.text)
+        return assert_response_schema(response, OpenCreditCardAccountResponseSchema)
 
 
 def build_accounts_gateway_http_client() -> AccountsGatewayHTTPClient:

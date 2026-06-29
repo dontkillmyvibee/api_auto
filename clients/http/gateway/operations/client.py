@@ -19,6 +19,7 @@ from clients.http.gateway.operations.schema import (
     MakeTransferOperationRequestSchema,
 )
 from clients.http.gateway.public_builder import get_public_http_client
+from tools.assertions.http import assert_response_schema
 from tools.http.http_routes import HTTPRoutes
 
 
@@ -175,53 +176,53 @@ class OperationsGatewayHTTPClient:
 
     def get_operations(self, query: GetOperationsQuerySchema) -> GetOperationsResponseSchema:
         response = self.get_operations_api(query)
-        return GetOperationsResponseSchema.model_validate_json(response.text)
+        return assert_response_schema(response, GetOperationsResponseSchema)
 
     def get_operations_summary(self, query: GetOperationsSummaryQuerySchema) -> GetOperationsSummaryResponseSchema:
         response = self.get_operations_summary_api(query)
-        return GetOperationsSummaryResponseSchema.model_validate_json(response.text)
+        return assert_response_schema(response, GetOperationsSummaryResponseSchema)
 
     def get_operation_receipt(self, operation_id: str) -> GetReceiptResponseSchema:
         response = self.get_operation_receipt_api(operation_id)
-        return GetReceiptResponseSchema.model_validate_json(response.text)
+        return assert_response_schema(response, GetReceiptResponseSchema)
 
     def get_operation(self, operation_id: str) -> GetOperationResponseSchema:
         response = self.get_operation_api(operation_id)
-        return GetOperationResponseSchema.model_validate_json(response.text)
+        return assert_response_schema(response, GetOperationResponseSchema)
 
     def make_fee_operation(self, request: MakeFeeOperationRequestSchema) -> CreateOperationResponseSchema:
         response = self.make_fee_operation_api(request)
-        return CreateOperationResponseSchema.model_validate_json(response.text)
+        return assert_response_schema(response, CreateOperationResponseSchema)
 
     def make_top_up_operation(self, request: MakeTopUpOperationRequestSchema) -> CreateOperationResponseSchema:
         response = self.make_top_up_operation_api(request)
-        return CreateOperationResponseSchema.model_validate_json(response.text)
+        return assert_response_schema(response, CreateOperationResponseSchema)
 
     def make_cashback_operation(self, request: MakeCashbackOperationRequestSchema) -> CreateOperationResponseSchema:
         response = self.make_cashback_operation_api(request)
-        return CreateOperationResponseSchema.model_validate_json(response.text)
+        return assert_response_schema(response, CreateOperationResponseSchema)
 
     def make_transfer_operation(self, request: MakeTransferOperationRequestSchema) -> CreateOperationResponseSchema:
         response = self.make_transfer_operation_api(request)
-        return CreateOperationResponseSchema.model_validate_json(response.text)
+        return assert_response_schema(response, CreateOperationResponseSchema)
 
     def make_purchase_operation(self, request: MakePurchaseOperationRequestSchema) -> CreateOperationResponseSchema:
         response = self.make_purchase_operation_api(request)
-        return CreateOperationResponseSchema.model_validate_json(response.text)
+        return assert_response_schema(response, CreateOperationResponseSchema)
 
     def make_bill_payment_operation(
         self,
         request: MakeBillPaymentOperationRequestSchema,
     ) -> CreateOperationResponseSchema:
         response = self.make_bill_payment_operation_api(request)
-        return CreateOperationResponseSchema.model_validate_json(response.text)
+        return assert_response_schema(response, CreateOperationResponseSchema)
 
     def make_cash_withdrawal_operation(
         self,
         request: MakeCashWithdrawalOperationRequestSchema,
     ) -> CreateOperationResponseSchema:
         response = self.make_cash_withdrawal_operation_api(request)
-        return CreateOperationResponseSchema.model_validate_json(response.text)
+        return assert_response_schema(response, CreateOperationResponseSchema)
 
 
 def build_operations_gateway_http_client() -> OperationsGatewayHTTPClient:

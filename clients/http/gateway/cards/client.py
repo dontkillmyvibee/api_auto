@@ -9,6 +9,7 @@ from clients.http.gateway.cards.schema import (
     IssueVirtualCardResponseSchema,
 )
 from clients.http.gateway.public_builder import get_public_http_client
+from tools.assertions.http import assert_response_schema
 from tools.http.http_routes import HTTPRoutes
 
 
@@ -48,11 +49,11 @@ class CardsGatewayHTTPClient:
 
     def issue_virtual_card(self, request: IssueVirtualCardRequestSchema) -> IssueVirtualCardResponseSchema:
         response = self.issue_virtual_card_api(request)
-        return IssueVirtualCardResponseSchema.model_validate_json(response.text)
+        return assert_response_schema(response, IssueVirtualCardResponseSchema)
 
     def issue_physical_card(self, request: IssuePhysicalCardRequestSchema) -> IssuePhysicalCardResponseSchema:
         response = self.issue_physical_card_api(request)
-        return IssuePhysicalCardResponseSchema.model_validate_json(response.text)
+        return assert_response_schema(response, IssuePhysicalCardResponseSchema)
 
 
 def build_cards_gateway_http_client() -> CardsGatewayHTTPClient:

@@ -7,6 +7,7 @@ from clients.http.gateway.documents.schema import (
     GetTariffDocumentResponseSchema,
 )
 from clients.http.gateway.public_builder import get_public_http_client
+from tools.assertions.http import assert_response_schema
 from tools.http.http_routes import HTTPRoutes
 
 
@@ -46,11 +47,11 @@ class DocumentsGatewayHTTPClient:
 
     def get_tariff_document(self, account_id: str) -> GetTariffDocumentResponseSchema:
         response = self.get_tariff_document_api(account_id)
-        return GetTariffDocumentResponseSchema.model_validate_json(response.text)
+        return assert_response_schema(response, GetTariffDocumentResponseSchema)
 
     def get_contract_document(self, account_id: str) -> GetContractDocumentResponseSchema:
         response = self.get_contract_document_api(account_id)
-        return GetContractDocumentResponseSchema.model_validate_json(response.text)
+        return assert_response_schema(response, GetContractDocumentResponseSchema)
 
 
 def build_documents_gateway_http_client() -> DocumentsGatewayHTTPClient:

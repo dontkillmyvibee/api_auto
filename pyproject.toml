@@ -42,6 +42,11 @@ addopts = [
     "--alluredir=allure-results",
     "--clean-alluredir",
 ]
+markers = [
+    "http_api: HTTP API тесты",
+    "users: Тесты на домен users",
+    "regression: Регрессионные тесты",
+]
 
 [tool.ruff]
 target-version = "py313"

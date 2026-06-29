@@ -3,7 +3,12 @@ from requests import Response
 
 from clients.http.client import HTTPClient
 from clients.http.gateway.public_builder import get_public_http_client
-from clients.http.gateway.users.schema import CreateUserRequestSchema, CreateUserResponseSchema
+from clients.http.gateway.users.schema import (
+    CreateUserRequestSchema,
+    CreateUserResponseSchema,
+    GetUserResponseSchema,
+)
+from tools.assertions.http import assert_response_schema
 from tools.http.http_routes import HTTPRoutes
 
 
@@ -41,6 +46,18 @@ class UsersGatewayHTTPClient:
         """
         return self.__client.post(HTTPRoutes.USERS, json=request.to_dict())
 
+    def get_user(self, user_id: str) -> GetUserResponseSchema:
+        """Высокоуровневый метод получения юзера.
+
+        Args:
+            user_id (str): Идентификатор пользователя.
+
+        Returns:
+            GetUserResponseSchema: Ответ от сервера в виде объекта GetUserResponseSchema.
+        """
+        response = self.get_user_api(user_id)
+        return assert_response_schema(response, GetUserResponseSchema)
+
     def create_user(self, request: CreateUserRequestSchema) -> CreateUserResponseSchema:
         """Высокоуровневый метод создания юзера.
 
@@ -52,7 +69,7 @@ class UsersGatewayHTTPClient:
 
         """
         response = self.create_user_api(request)
-        return CreateUserResponseSchema.model_validate_json(response.text)
+        return assert_response_schema(response, CreateUserResponseSchema)
 
 
 def build_users_gateway_http_client() -> UsersGatewayHTTPClient:
