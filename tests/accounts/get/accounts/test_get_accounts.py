@@ -10,4 +10,4 @@ class TestGetAccounts:
     ) -> None:
         response = http_gateway_account_client.get_accounts(GetAccountsQuerySchema(user_id=function_user.user_id))
 
-        assert_length(response.accounts, 0, "Accounts")
+        assert_length(response.accounts, 0, "accounts")
