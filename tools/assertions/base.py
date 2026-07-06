@@ -1,4 +1,4 @@
-from collections.abc import Sized
+from collections.abc import Container, Sized
 from typing import Any
 
 import allure
@@ -73,6 +73,18 @@ def assert_length_with_two_sized(actual: Sized, expected: Sized, name: str) -> N
 
 
 def assert_length(actual: Sized, expected: int, name: str) -> None:
-    assert len(actual) == expected, (
-        f'Incorrect object length: "{name}". Expected length: {expected}. Actual length: {len(actual)}'
+    with allure.step(f"Check that length of {name} equals to {expected}"):
+        logger.info(f'Check that length of "{name}" equals to {expected}')
+        assert len(actual) == expected, (
+            f'Incorrect object length: "{name}". Expected length: {expected}. Actual length: {len(actual)}'
+        )
+
+
+@allure.step("Check that name in {expected}")
+def assert_in(actual: Any, expected: Container[Any], name: str) -> None:
+    logger.info(f'Check that "{name}" in {expected}')
+    assert actual in expected, (
+        f"Object {name} not found in {expected}."
+        f"Expected: {actual} in {expected} == True."
+        f"Actual: {actual} in {expected} == False"
     )

@@ -6,7 +6,9 @@ import allure
 from pydantic import BaseModel
 from requests import Response
 
-from clients.http.gateway.error_schema import HTTPValidationErrorSchema
+from tools.logger import get_logger
+
+logger = get_logger("HTTP_ASSERTIONS")
 
 
 def _format_status_error(response: Response, expected: set[int]) -> str:
@@ -33,6 +35,7 @@ def assert_status_code(response: Response, expected: int | set[int]) -> None:
     expected_codes = {expected} if isinstance(expected, int) else set(expected)
     label = expected if isinstance(expected, int) else sorted(expected_codes)
 
+    logger.info(f"Assert status code is {label}")
     with allure.step(f"Assert status code is {label}"):
         if response.status_code not in expected_codes:
             raise AssertionError(_format_status_error(response, expected_codes))
@@ -55,21 +58,6 @@ def assert_response_schema[T: BaseModel](
         T: Провалидированная модель ответа.
     """
     assert_status_code(response, status)
+    logger.info(f"Validate response schema: {schema.__name__}")
     with allure.step(f"Validate response schema: {schema.__name__}"):
         return schema.model_validate_json(response.text)
-
-
-def assert_validation_error(response: Response) -> HTTPValidationErrorSchema:
-    """Проверяет ответ 422 Unprocessable Entity (FastAPI validation error).
-
-    Args:
-        response (Response): Ответ requests.
-
-    Returns:
-        HTTPValidationErrorSchema: Провалидированное тело ошибки.
-    """
-    return assert_response_schema(
-        response,
-        HTTPValidationErrorSchema,
-        status=HTTPStatus.UNPROCESSABLE_ENTITY,
-    )

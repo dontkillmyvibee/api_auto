@@ -1,5 +1,5 @@
 import pytest
-from pydantic import UUID4, BaseModel
+from pydantic import UUID4, BaseModel, EmailStr
 
 from clients.http.gateway.users.client import UsersGatewayHTTPClient, build_users_gateway_http_client
 from clients.http.gateway.users.schema import CreateUserRequestSchema, CreateUserResponseSchema
@@ -17,6 +17,26 @@ class UserFixture(BaseModel):
     @property
     def user_id(self) -> UUID4:
         return self.response.user.id
+
+    @property
+    def response_email(self) -> EmailStr:
+        return self.response.user.email
+
+    @property
+    def response_last_name(self) -> str:
+        return self.response.user.last_name
+
+    @property
+    def response_first_name(self) -> str:
+        return self.response.user.first_name
+
+    @property
+    def response_middle_name(self) -> str:
+        return self.response.user.middle_name
+
+    @property
+    def response_phone_number(self) -> str:
+        return self.response.user.phone_number
 
 
 @pytest.fixture

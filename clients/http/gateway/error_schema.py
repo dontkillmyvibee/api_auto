@@ -9,6 +9,10 @@ class ValidationErrorSchema(CamelCaseModel):
     type: str
 
 
+class HTTPInternalErrorSchema(CamelCaseModel):
+    detail: str
+
+
 class HTTPValidationErrorSchema(CamelCaseModel):
     """Тело ответа 422 Unprocessable Entity."""
 

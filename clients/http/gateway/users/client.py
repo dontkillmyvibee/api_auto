@@ -1,4 +1,7 @@
+from typing import Any
+
 import allure
+from pydantic import UUID4
 from requests import Response
 
 from clients.http.client import HTTPClient
@@ -21,7 +24,7 @@ class UsersGatewayHTTPClient:
         self.__client = client
 
     @allure.step('Get user by id "{user_id}"')
-    def get_user_api(self, user_id: str) -> Response:
+    def get_user_api(self, user_id: str | Any) -> Response:
         """Метод получения юзера.
 
         Args:
@@ -46,7 +49,7 @@ class UsersGatewayHTTPClient:
         """
         return self.__client.post(HTTPRoutes.USERS, json=request.to_dict())
 
-    def get_user(self, user_id: str) -> GetUserResponseSchema:
+    def get_user(self, user_id: str | UUID4) -> GetUserResponseSchema:
         """Высокоуровневый метод получения юзера.
 
         Args:
