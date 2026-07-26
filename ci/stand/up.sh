@@ -16,9 +16,9 @@ WAIT_SLEEP_SEC="${WAIT_SLEEP_SEC:-5}"
 mkdir -p "$(dirname "${STAND_HOST_PATH}")"
 
 # Fixed container_name/ports in the stand collide with a locally running copy.
-# CI takes ownership: stop any previous stand before bringing this one up.
-free_stand_ports() {
-  echo "Freeing ports/containers from any previous bank stand..."
+# CI takes ownership of the bank stand containers only (not unrelated apps).
+free_previous_stand() {
+  echo "Stopping previous bank stand containers (if any)..."
 
   local compose_dirs=(
     "${STAND_HOST_PATH}"
@@ -36,7 +36,6 @@ free_stand_ports() {
     fi
   done
 
-  # Belt-and-suspenders: remove by well-known container names from the stand compose.
   docker rm -f \
     minio redis kafka kafka-ui zookeeper \
     postgres postgres-init postgres-admin \
@@ -51,7 +50,7 @@ free_stand_ports() {
     2>/dev/null || true
 }
 
-free_stand_ports
+free_previous_stand
 
 if [[ -d "${STAND_HOST_PATH}/.git" ]]; then
   echo "Updating stand at ${STAND_HOST_PATH}..."
@@ -67,6 +66,10 @@ if [[ -f "${COMPOSE_KAFKA_OVERRIDE}" ]]; then
   cp "${COMPOSE_KAFKA_OVERRIDE}" "${STAND_HOST_PATH}/docker-compose.kafka-host.yaml"
 fi
 
+# Avoid collisions with unrelated local apps (e.g. sourcer-hub on :3001).
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+bash "${SCRIPT_DIR}/remap-ports.sh" "${STAND_HOST_PATH}/docker-compose.yaml"
+
 cd "${STAND_HOST_PATH}"
 
 echo "Building base-service image..."
@@ -76,8 +79,7 @@ echo "Starting stand (docker compose)..."
 docker compose \
   -f docker-compose.yaml \
   -f docker-compose.kafka-host.yaml \
-  up -d --build --remove-orphans
-echo "Waiting for gateway ${GATEWAY_URL}..."
+  up -d --build --remove-orphansecho "Waiting for gateway ${GATEWAY_URL}..."
 for i in $(seq 1 "${WAIT_ATTEMPTS}"); do
   code="$(curl -s -o /dev/null -w "%{http_code}" "${GATEWAY_URL}/" || true)"
   if [[ "${code}" != "000" ]]; then
