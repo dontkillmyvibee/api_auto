@@ -28,6 +28,6 @@ htmlcov/
 # OS
 .DS_Store
 
-#docker
-Dockerfile
-.dockerignore
+# GitLab runner (registration/auth tokens)
+ci/runner/config/**
+!ci/runner/config/.gitkeep

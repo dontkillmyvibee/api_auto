@@ -1,0 +1,81 @@
+# Production-like pipeline for api-auto.
+# Jobs run only on the project runner tagged `api-auto` (local Docker runner).
+#
+# GitLab CI variable names cannot contain dots. We map underscore vars → .env
+# (API.BASE_URL etc.) so pydantic-settings keeps the same contract as local runs.
+#
+# Stand (API / Postgres / Kafka) must be reachable via host.docker.internal.
+
+stages:
+  - lint
+  - typecheck
+  - test
+
+default:
+  image: ghcr.io/astral-sh/uv:python3.13-bookworm-slim
+  tags:
+    - api-auto
+  interruptible: true
+  cache:
+    key:
+      files:
+        - uv.lock
+    paths:
+      - .venv/
+  before_script:
+    - |
+      cat > .env <<EOF
+      API.BASE_URL=${API_BASE_URL}
+      API.TIMEOUT=${API_TIMEOUT}
+      LOG_LEVEL=${LOG_LEVEL}
+      DATABASE.HOST=${DATABASE_HOST}
+      DATABASE.PORT=${DATABASE_PORT}
+      DATABASE.USER=${DATABASE_USER}
+      DATABASE.PASSWORD=${DATABASE_PASSWORD}
+      KAFKA.BOOTSTRAP_SERVERS=${KAFKA_BOOTSTRAP_SERVERS}
+      KAFKA.GROUP_ID=${KAFKA_GROUP_ID}
+      KAFKA.AUTO_OFFSET_RESET=${KAFKA_AUTO_OFFSET_RESET}
+      EOF
+    - uv sync --frozen --all-groups
+
+workflow:
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
+    - if: $CI_COMMIT_BRANCH
+
+variables:
+  API_BASE_URL: "http://host.docker.internal:8003"
+  API_TIMEOUT: "30"
+  LOG_LEVEL: "INFO"
+  DATABASE_HOST: "host.docker.internal"
+  DATABASE_PORT: "5432"
+  # Set Masked variables in GitLab UI (required for test job):
+  #   DATABASE_USER, DATABASE_PASSWORD
+  KAFKA_BOOTSTRAP_SERVERS: "host.docker.internal:9093"
+  KAFKA_GROUP_ID: "api-auto-tests-ci"
+  KAFKA_AUTO_OFFSET_RESET: "earliest"
+  PYTHONDONTWRITEBYTECODE: "1"
+  PYTHONUNBUFFERED: "1"
+
+lint:
+  stage: lint
+  script:
+    - uv run ruff check .
+    - uv run ruff format --check .
+
+typecheck:
+  stage: typecheck
+  script:
+    - uv run mypy .
+
+test:
+  stage: test
+  script:
+    - uv run pytest
+  artifacts:
+    when: always
+    paths:
+      - allure-results/
+    expire_in: 7 days
+  # Allure publish/report hosting — next iteration.
