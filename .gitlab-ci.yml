@@ -1,21 +1,47 @@
-# Production-like pipeline for api-auto.
-# Jobs run only on the project runner tagged `api-auto` (local Docker runner).
+# Production-like pipeline for api-auto (Mac Docker runner).
 #
-# GitLab CI variable names cannot contain dots. We map underscore vars → .env
-# (API.BASE_URL etc.) so pydantic-settings keeps the same contract as local runs.
-#
-# Stand (API / Postgres / Kafka) must be reachable via host.docker.internal.
+# Flow: stand up → quality (lint/format/typecheck) → test → stand down
+# Stand is cloned into STAND_HOST_PATH (bind-mounted into jobs) and started
+# via docker.sock on Docker Desktop. Mac must be online for the runner to work.
 
 stages:
-  - lint
-  - typecheck
+  - stand
+  - quality
   - test
+  - teardown
+
+variables:
+  # Same absolute path on Mac host and in job containers (see runner volumes).
+  STAND_HOST_PATH: "/Users/anatolijkoleda/ci-stand/performance-qa-engineer-course"
+  STAND_REPO: "https://github.com/Nikita-Filonov/performance-qa-engineer-course.git"
+  STAND_REF: "main"
+  API_BASE_URL: "http://host.docker.internal:8003"
+  API_TIMEOUT: "30"
+  LOG_LEVEL: "INFO"
+  DATABASE_HOST: "host.docker.internal"
+  DATABASE_PORT: "5432"
+  # Educational stand defaults (postgres service in docker-compose.yaml).
+  DATABASE_USER: "root"
+  DATABASE_PASSWORD: "root"
+  KAFKA_BOOTSTRAP_SERVERS: "host.docker.internal:9093"
+  KAFKA_GROUP_ID: "api-auto-tests-ci"
+  KAFKA_AUTO_OFFSET_RESET: "earliest"
+  PYTHONDONTWRITEBYTECODE: "1"
+  PYTHONUNBUFFERED: "1"
 
 default:
-  image: ghcr.io/astral-sh/uv:python3.13-bookworm-slim
   tags:
     - api-auto
   interruptible: true
+
+workflow:
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
+    - if: $CI_COMMIT_BRANCH
+
+.uv_job:
+  image: ghcr.io/astral-sh/uv:python3.13-bookworm-slim
   cache:
     key:
       files:
@@ -38,39 +64,44 @@ default:
       EOF
     - uv sync --frozen --all-groups
 
-workflow:
-  rules:
-    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
-    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
-    - if: $CI_COMMIT_BRANCH
-
-variables:
-  API_BASE_URL: "http://host.docker.internal:8003"
-  API_TIMEOUT: "30"
-  LOG_LEVEL: "INFO"
-  DATABASE_HOST: "host.docker.internal"
-  DATABASE_PORT: "5432"
-  # Set Masked variables in GitLab UI (required for test job):
-  #   DATABASE_USER, DATABASE_PASSWORD
-  KAFKA_BOOTSTRAP_SERVERS: "host.docker.internal:9093"
-  KAFKA_GROUP_ID: "api-auto-tests-ci"
-  KAFKA_AUTO_OFFSET_RESET: "earliest"
-  PYTHONDONTWRITEBYTECODE: "1"
-  PYTHONUNBUFFERED: "1"
+stand:up:
+  stage: stand
+  image: docker:27-cli
+  timeout: 2h
+  interruptible: false
+  resource_group: bank-stand
+  variables:
+    COMPOSE_KAFKA_OVERRIDE: "ci/stand/docker-compose.kafka-host.yaml"
+  before_script:
+    - apk add --no-cache git bash curl
+  script:
+    - bash ci/stand/up.sh
 
 lint:
-  stage: lint
+  extends: .uv_job
+  stage: quality
+  needs: ["stand:up"]
   script:
     - uv run ruff check .
+
+format:
+  extends: .uv_job
+  stage: quality
+  needs: ["stand:up"]
+  script:
     - uv run ruff format --check .
 
 typecheck:
-  stage: typecheck
+  extends: .uv_job
+  stage: quality
+  needs: ["stand:up"]
   script:
     - uv run mypy .
 
 test:
+  extends: .uv_job
   stage: test
+  needs: ["stand:up", "lint", "format", "typecheck"]
   script:
     - uv run pytest
   artifacts:
@@ -78,4 +109,16 @@ test:
     paths:
       - allure-results/
     expire_in: 7 days
-  # Allure publish/report hosting — next iteration.
+
+stand:down:
+  stage: teardown
+  image: docker:27-cli
+  when: always
+  interruptible: false
+  resource_group: bank-stand
+  needs:
+    - job: stand:up
+  before_script:
+    - apk add --no-cache bash
+  script:
+    - bash ci/stand/down.sh

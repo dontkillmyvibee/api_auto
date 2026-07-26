@@ -6,8 +6,8 @@ services:
     volumes:
       # Runner config (config.toml + keys). Not committed — see .gitignore.
       - ./runner/config:/etc/gitlab-runner
-      # Docker executor talks to host Docker daemon.
+      # Docker executor talks to host Docker daemon (jobs also need sock via config.toml).
       - /var/run/docker.sock:/var/run/docker.sock
-    # So job containers can resolve host.docker.internal → host stand ports.
+    # Job containers resolve stand ports on the Mac host.
     extra_hosts:
       - "host.docker.internal:host-gateway"
