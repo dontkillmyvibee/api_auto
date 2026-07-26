@@ -1,5 +1,7 @@
 from http import HTTPStatus
 
+import pytest
+
 from clients.http.gateway.users.client import UsersGatewayHTTPClient
 from fixtures.users import UserFixture
 from tools.assertions.http import assert_status_code
@@ -7,6 +9,10 @@ from tools.assertions.users import assert_get_user_response, assert_user_not_fou
 from tools.fakers import fake
 
 
+@pytest.mark.http_api
+@pytest.mark.users
+@pytest.mark.regression
+@pytest.mark.positive
 class TestGetUser:
     def test_get_user(self, http_gateway_users_client: UsersGatewayHTTPClient, function_user: UserFixture) -> None:
         response = http_gateway_users_client.get_user(user_id=function_user.user_id)
@@ -14,6 +20,9 @@ class TestGetUser:
         assert_get_user_response(user=function_user, response=response)
 
 
+@pytest.mark.http_api
+@pytest.mark.users
+@pytest.mark.negative
 class TestGetUserNegative:
     def test_get_user_with_invalid_user_id(self, http_gateway_users_client: UsersGatewayHTTPClient) -> None:
         user_id = fake.uuid4()

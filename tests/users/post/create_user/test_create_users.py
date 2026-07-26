@@ -12,6 +12,7 @@ from tools.fakers import fake
 @pytest.mark.http_api
 @pytest.mark.users
 @pytest.mark.regression
+@pytest.mark.positive
 class TestCreateUser:
     @pytest.mark.parametrize("domain", ["mail.ru", "gmail.com", "icloud.com", "outlook.com", "example.com"])
     def test_create_user(self, domain: str, http_gateway_users_client: UsersGatewayHTTPClient) -> None:
@@ -21,6 +22,9 @@ class TestCreateUser:
         assert_create_user_response(request, response)
 
 
+@pytest.mark.http_api
+@pytest.mark.users
+@pytest.mark.negative
 class TestCreateUserNegative:
     @pytest.mark.parametrize(
         "email",

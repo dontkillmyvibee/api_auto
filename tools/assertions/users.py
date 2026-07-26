@@ -5,7 +5,7 @@ from requests import Response
 from clients.http.gateway.error_schema import HTTPInternalErrorSchema
 from clients.http.gateway.users.schema import CreateUserRequestSchema, CreateUserResponseSchema, GetUserResponseSchema
 from fixtures.users import UserFixture
-from tools.assertions.base import assert_equal, assert_in
+from tools.assertions.base import assert_equal, assert_in, assert_not_none
 from tools.logger import get_logger
 
 logger = get_logger("USER_ASSERTIONS")
@@ -28,6 +28,7 @@ def assert_create_user_response(request: CreateUserRequestSchema, response: Crea
     """
     logger.info("Check create user response")
 
+    assert_not_none(response.user.id, "id")
     assert_equal(response.user.email, request.email, "email")
     assert_equal(response.user.last_name, request.last_name, "last_name")
     assert_equal(response.user.first_name, request.first_name, "first_name")

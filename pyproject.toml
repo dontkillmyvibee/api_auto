@@ -46,6 +46,8 @@ markers = [
     "http_api: HTTP API тесты",
     "users: Тесты на домен users",
     "regression: Регрессионные тесты",
+    "positive: Позитивные тесты",
+    "negative: Негативные тесты"
 ]
 
 [tool.ruff]

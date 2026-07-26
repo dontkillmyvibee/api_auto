@@ -38,6 +38,10 @@ class UserFixture(BaseModel):
     def response_phone_number(self) -> str:
         return self.response.user.phone_number
 
+    @property
+    def response_full_name(self) -> str:
+        return f"{self.response.user.first_name} {self.response.user.last_name}"
+
 
 @pytest.fixture
 def function_user(http_gateway_users_client: UsersGatewayHTTPClient) -> UserFixture:

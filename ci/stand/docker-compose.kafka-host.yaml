@@ -1,6 +1,0 @@
-# Kafka host-listener for CI job containers that reach the stand via host.docker.internal.
-# Applied on top of performance-qa-engineer-course/docker-compose.yaml
-services:
-  kafka:
-    environment:
-      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092,PLAINTEXT_HOST://host.docker.internal:9093

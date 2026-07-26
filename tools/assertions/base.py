@@ -88,3 +88,9 @@ def assert_in(actual: Any, expected: Container[Any], name: str) -> None:
         f"Expected: {actual} in {expected} == True."
         f"Actual: {actual} in {expected} == False"
     )
+
+
+@allure.step("Check that {name} isn`t None")
+def assert_not_none(actual: Any, name: str) -> None:
+    logger.info(f'Check that "{name}" isn`t None')
+    assert actual is not None, f"Object {name} is None.Expected: {actual} != None.Actual: {actual} == None"
