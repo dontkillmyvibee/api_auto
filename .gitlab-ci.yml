@@ -171,7 +171,7 @@ pages:
       artifacts: true
   script:
     - echo "Publishing Allure report to GitLab Pages"
-    - echo "Pages URL: https://dontkillmyvibe-group1.gitlab.io/api-auto"
+    - 'echo "Pages URL: https://dontkillmyvibe-group1.gitlab.io/api-auto"'
     - ls -la public | head
   artifacts:
     paths:
