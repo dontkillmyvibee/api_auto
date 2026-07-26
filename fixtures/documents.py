@@ -4,5 +4,5 @@ from clients.http.gateway.documents.client import DocumentsGatewayHTTPClient, bu
 
 
 @pytest.fixture
-def get_http_gateway_documents_client() -> DocumentsGatewayHTTPClient:
+def http_gateway_documents_client() -> DocumentsGatewayHTTPClient:
     return build_documents_gateway_http_client()

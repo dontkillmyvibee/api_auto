@@ -4,5 +4,5 @@ from clients.http.gateway.operations.client import OperationsGatewayHTTPClient, 
 
 
 @pytest.fixture
-def get_http_gateway_operations_client() -> OperationsGatewayHTTPClient:
+def http_gateway_operations_client() -> OperationsGatewayHTTPClient:
     return build_operations_gateway_http_client()

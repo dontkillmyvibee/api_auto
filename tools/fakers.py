@@ -1,3 +1,6 @@
+from datetime import datetime
+from uuid import UUID
+
 from faker import Faker
 
 
@@ -13,6 +16,12 @@ class Fake:
 
     def uuid4(self) -> str:
         return self.faker.uuid4()
+
+    def uuid(self) -> UUID:
+        return UUID(self.faker.uuid4())
+
+    def date_time(self) -> datetime:
+        return self.faker.date_time()
 
     def email(self, domain: str | None = None) -> str:
         return self.faker.email(domain=domain)
