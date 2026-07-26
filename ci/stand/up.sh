@@ -15,6 +15,44 @@ WAIT_SLEEP_SEC="${WAIT_SLEEP_SEC:-5}"
 
 mkdir -p "$(dirname "${STAND_HOST_PATH}")"
 
+# Fixed container_name/ports in the stand collide with a locally running copy.
+# CI takes ownership: stop any previous stand before bringing this one up.
+free_stand_ports() {
+  echo "Freeing ports/containers from any previous bank stand..."
+
+  local compose_dirs=(
+    "${STAND_HOST_PATH}"
+    "/Users/anatolijkoleda/Desktop/performance-qa-engineer-course"
+  )
+  local dir
+  for dir in "${compose_dirs[@]}"; do
+    if [[ -f "${dir}/docker-compose.yaml" ]]; then
+      echo "  docker compose down in ${dir}"
+      if [[ -f "${dir}/docker-compose.kafka-host.yaml" ]]; then
+        docker compose -f "${dir}/docker-compose.yaml" -f "${dir}/docker-compose.kafka-host.yaml" down --remove-orphans || true
+      else
+        docker compose -f "${dir}/docker-compose.yaml" down --remove-orphans || true
+      fi
+    fi
+  done
+
+  # Belt-and-suspenders: remove by well-known container names from the stand compose.
+  docker rm -f \
+    minio redis kafka kafka-ui zookeeper \
+    postgres postgres-init postgres-admin \
+    postgres-migrator-users postgres-migrator-cards \
+    postgres-migrator-accounts postgres-migrator-operations \
+    grafana cadvisor prometheus \
+    http-users grpc-users http-cards grpc-cards \
+    http-gateway grpc-gateway http-accounts grpc-accounts \
+    http-documents grpc-documents kafka-documents \
+    http-operations grpc-operations \
+    http-mock grpc-mock \
+    2>/dev/null || true
+}
+
+free_stand_ports
+
 if [[ -d "${STAND_HOST_PATH}/.git" ]]; then
   echo "Updating stand at ${STAND_HOST_PATH}..."
   git -C "${STAND_HOST_PATH}" fetch --depth 1 origin "${STAND_REF}"
@@ -39,7 +77,6 @@ docker compose \
   -f docker-compose.yaml \
   -f docker-compose.kafka-host.yaml \
   up -d --build --remove-orphans
-
 echo "Waiting for gateway ${GATEWAY_URL}..."
 for i in $(seq 1 "${WAIT_ATTEMPTS}"); do
   code="$(curl -s -o /dev/null -w "%{http_code}" "${GATEWAY_URL}/" || true)"
