@@ -79,7 +79,9 @@ echo "Starting stand (docker compose)..."
 docker compose \
   -f docker-compose.yaml \
   -f docker-compose.kafka-host.yaml \
-  up -d --build --remove-orphansecho "Waiting for gateway ${GATEWAY_URL}..."
+  up -d --build --remove-orphans
+
+echo "Waiting for gateway ${GATEWAY_URL}..."
 for i in $(seq 1 "${WAIT_ATTEMPTS}"); do
   code="$(curl -s -o /dev/null -w "%{http_code}" "${GATEWAY_URL}/" || true)"
   if [[ "${code}" != "000" ]]; then
