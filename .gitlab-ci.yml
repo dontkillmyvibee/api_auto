@@ -143,13 +143,25 @@ allure:report:
     - |
       mkdir -p public
       cp -R allure-report/. public/
+    - |
+      REPORT_URL="${CI_PROJECT_URL}/-/jobs/${CI_JOB_ID}/artifacts/file/allure-report/index.html"
+      echo "ALLURE_REPORT_URL=${REPORT_URL}" > allure.env
+      echo ""
+      echo "=============================================="
+      echo "Allure report: ${REPORT_URL}"
+      echo "=============================================="
   artifacts:
     when: always
+    expose_as: "Allure report"
     paths:
       - allure-report/
       - public/
+    reports:
+      dotenv: allure.env
     expire_in: 30 days
-  # Browse report in job artifacts: allure-report/index.html
+  environment:
+    name: allure/$CI_COMMIT_REF_SLUG
+    url: $ALLURE_REPORT_URL
 
 pages:
   stage: report
@@ -159,6 +171,7 @@ pages:
       artifacts: true
   script:
     - echo "Publishing Allure report to GitLab Pages"
+    - echo "Pages URL: https://dontkillmyvibe-group1.gitlab.io/api-auto"
     - ls -la public | head
   artifacts:
     paths:
@@ -166,7 +179,7 @@ pages:
   rules:
     - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
   environment:
-    name: allure
+    name: allure-pages
     url: https://dontkillmyvibe-group1.gitlab.io/api-auto
 
 stand:down:
